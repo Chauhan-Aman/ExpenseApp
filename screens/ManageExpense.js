@@ -1,4 +1,4 @@
-import { useContext, useLayoutEffect } from 'react';
+import { useContext, useLayoutEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native'
 
 import { GlobalStyles } from '../constants/styles';
@@ -7,7 +7,15 @@ import ExpenseForm from '../components/ManageExpense/ExpenseForm';
 
 import { ExpensesContext } from '../store/expenses-context';
 
+import { deleteExpense, storeExpense, updateExpense } from '../util/http';
+
+import LoadingOverlay from '../components/UI/LoadingOverlay';
+import ErrorOverlay from '../components/UI/ErrorOverlay';
+
 const ManageExpense = ({ route, navigation }) => {
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState();
 
   const expensesCtx = useContext(ExpensesContext)
 
@@ -22,22 +30,48 @@ const ManageExpense = ({ route, navigation }) => {
     });
   }, [navigation, isEditing]);
 
-  function deleteExpenseHandler() {
-    expensesCtx.deleteExpense(editedExpenseId);
-    navigation.goBack();
+  async function deleteExpenseHandler() {
+    setIsSubmitting(true);
+
+    try {
+      await deleteExpense(editedExpenseId);
+      expensesCtx.deleteExpense(editedExpenseId);
+      navigation.goBack();   // No need for setting issumitting state false bcoz we are anyways closing the modal
+    } catch (error) {
+      setError('Could Not Delete Expense - Please Try Again Later');
+      setIsSubmitting(false);
+    }
+
   }
 
   function cancelHandler() {
     navigation.goBack();
   }
 
-  function confirmHandler(expenseData) {
-    if (isEditing) {
-      expensesCtx.updateExpense(editedExpenseId, expenseData);
-    } else {
-      expensesCtx.addExpense(expenseData);
+  async function confirmHandler(expenseData) {
+    setIsSubmitting(true);
+
+    try {
+      if (isEditing) {
+        expensesCtx.updateExpense(editedExpenseId, expenseData);
+        await updateExpense(editedExpenseId, expenseData);
+      } else {
+        const id = await storeExpense(expenseData);
+        expensesCtx.addExpense({ ...expenseData, id: id });
+      }
+      navigation.goBack();
+    } catch (error) {
+      setError('Could Not Save Data - Please Try Again Later!');
+      setIsSubmitting(false);
     }
-    navigation.goBack();
+  }
+
+  if (error && !isSubmitting) {
+    return <ErrorOverlay message={setError}/>
+  }
+
+  if (isSubmitting) {
+    return <LoadingOverlay />
   }
 
   return (
@@ -59,7 +93,7 @@ const ManageExpense = ({ route, navigation }) => {
   )
 }
 
-export default ManageExpense
+export default ManageExpense;
 
 const styles = StyleSheet.create({
   container: {
