@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "TravelApp",
-    "slug": "TravelApp",
+    "name": "BillBuddy",
+    "slug": "BillBuddy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,16 +15,24 @@
       "**/*"
     ],
     "ios": {
+      "buildNumber": "1.0.0",
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.chauhanaman.billbuddy"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d6596457-e273-435a-a4f7-c9a09bf37bde"
+      }
     }
   }
 }
